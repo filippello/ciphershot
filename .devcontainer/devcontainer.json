@@ -13,6 +13,8 @@
   },
   "appPort": ["9000:3000"],
   "mounts": [
-    "source=${localEnv:HOME}/.claude,target=/home/node/.claude,type=bind,consistency=cached"
-  ]
+    "source=${localEnv:HOME}/.claude,target=/home/node/.claude,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.claude/projects/-Users-federicofilippello-Projects-games-cipherShot,target=/home/node/.claude/projects/-workspaces-cipherShot,type=bind,consistency=cached"
+  ],
+  "runArgs": ["--memory=4g", "--memory-swap=4g"]
 }
