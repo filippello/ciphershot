@@ -1,20 +1,34 @@
 import { useGameStore } from '@/game/store';
 import { getResponder } from '@/game/core/engine';
-import type { CardType } from '@/game/core/types';
+import type { Player } from '@/game/core/types';
 
-export default function ActionPanel() {
+interface Props {
+  playerAddress: string;
+  playerA: string;
+  playerB: string;
+}
+
+export default function ActionPanel({ playerAddress, playerA, playerB }: Props) {
   const gameState = useGameStore((s) => s.gameState);
   const animating = useGameStore((s) => s.animating);
   const chooseTarget = useGameStore((s) => s.chooseTarget);
   const respondWithCard = useGameStore((s) => s.respondWithCard);
-  const resetGame = useGameStore((s) => s.resetGame);
 
   const { phase, currentShooter, players, winner } = gameState;
   const responder = getResponder(currentShooter);
   const responderCards = players[responder].cards;
 
+  // Map wallet address to player role
+  const myRole: Player = playerAddress === playerA ? 'player1' : 'player2';
+  const isMyTurnToShoot = currentShooter === myRole;
+  const isMyTurnToRespond = responder === myRole;
+
+  const shooterName = currentShooter === 'player1' ? 'P1' : 'P2';
+  const responderName = responder === 'player1' ? 'P1' : 'P2';
+
   if (phase === 'gameOver') {
-    const winnerName = winner === 'player1' ? 'Player 1' : 'Player 2';
+    const winnerName = winner === 'player1' ? 'Player 1' : winner === 'player2' ? 'Player 2' : 'Nobody';
+    const iWon = winner === myRole;
     return (
       <div style={{
         padding: '16px',
@@ -23,23 +37,9 @@ export default function ActionPanel() {
         textAlign: 'center',
         fontFamily: 'monospace',
       }}>
-        <div style={{ color: '#ff4444', fontSize: '24px', marginBottom: '12px' }}>
-          {winnerName} WINS
+        <div style={{ color: iWon ? '#88cc88' : '#ff4444', fontSize: '24px', marginBottom: '12px' }}>
+          {iWon ? 'YOU WIN' : 'YOU LOSE'}
         </div>
-        <button
-          onClick={resetGame}
-          style={{
-            padding: '8px 24px',
-            background: '#2a2a3e',
-            color: '#8888aa',
-            border: '1px solid #3a3a5e',
-            fontFamily: 'monospace',
-            cursor: 'pointer',
-            fontSize: '14px',
-          }}
-        >
-          NEW GAME
-        </button>
       </div>
     );
   }
@@ -60,7 +60,21 @@ export default function ActionPanel() {
   }
 
   if (phase === 'choosingTarget') {
-    const shooterName = currentShooter === 'player1' ? 'Player 1' : 'Player 2';
+    if (!isMyTurnToShoot) {
+      return (
+        <div style={{
+          padding: '16px',
+          background: '#0d0d1a',
+          borderTop: '1px solid #2a2a3e',
+          textAlign: 'center',
+          fontFamily: 'monospace',
+          color: '#666677',
+        }}>
+          Waiting for {shooterName} to choose target...
+        </div>
+      );
+    }
+
     return (
       <div style={{
         padding: '16px',
@@ -70,7 +84,7 @@ export default function ActionPanel() {
         fontFamily: 'monospace',
       }}>
         <div style={{ color: '#8888aa', marginBottom: '12px' }}>
-          {shooterName} — Choose your target:
+          Your turn — Choose your target:
         </div>
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
           <button
@@ -107,7 +121,21 @@ export default function ActionPanel() {
   }
 
   if (phase === 'respondingCard') {
-    const responderName = responder === 'player1' ? 'Player 1' : 'Player 2';
+    if (!isMyTurnToRespond) {
+      return (
+        <div style={{
+          padding: '16px',
+          background: '#0d0d1a',
+          borderTop: '1px solid #2a2a3e',
+          textAlign: 'center',
+          fontFamily: 'monospace',
+          color: '#666677',
+        }}>
+          Waiting for {responderName} to play a card...
+        </div>
+      );
+    }
+
     const availableBluffs = responderCards.filter(c => c.type === 'bluff' && !c.used).length;
     const availableRedirects = responderCards.filter(c => c.type === 'redirect' && !c.used).length;
 
@@ -120,7 +148,7 @@ export default function ActionPanel() {
         fontFamily: 'monospace',
       }}>
         <div style={{ color: '#8888aa', marginBottom: '12px' }}>
-          {responderName} — Play a card or pass:
+          Respond — Play a card:
         </div>
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
           <button

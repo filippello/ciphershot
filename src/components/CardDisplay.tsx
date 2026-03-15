@@ -7,10 +7,52 @@ const CARD_IMAGES: Record<string, string> = {
   back: '/assets/cards/card_back.png',
 };
 
-function PlayerCards({ player }: { player: Player }) {
+function OpponentCards({ player }: { player: Player }) {
   const cards = useGameStore((s) => s.gameState.players[player].cards);
-  const label = player === 'player1' ? 'P1 Cards' : 'P2 Cards';
+  const bluffs = cards.filter(c => c.type === 'bluff' && !c.used).length;
+  const redirects = cards.filter(c => c.type === 'redirect' && !c.used).length;
 
+  return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: '6px',
+      fontFamily: 'monospace',
+      fontSize: '10px',
+      color: '#555566',
+    }}>
+      <span style={{ color: '#ff6666', fontSize: '9px' }}>OPPONENT</span>
+      <div style={{ display: 'flex', gap: '2px' }}>
+        {cards.map((card) => (
+          <div
+            key={card.id}
+            style={{
+              width: '24px',
+              height: '34px',
+              borderRadius: '2px',
+              overflow: 'hidden',
+              opacity: card.used ? 0.15 : 0.7,
+              filter: card.used ? 'grayscale(1)' : 'none',
+            }}
+          >
+            <img
+              src={CARD_IMAGES.back}
+              alt="card"
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          </div>
+        ))}
+      </div>
+      <span style={{ fontSize: '9px' }}>
+        <span style={{ color: '#88cc88' }}>{bluffs}B</span>{' '}
+        <span style={{ color: '#cc88cc' }}>{redirects}R</span>
+      </span>
+    </div>
+  );
+}
+
+function MyCards({ player }: { player: Player }) {
+  const cards = useGameStore((s) => s.gameState.players[player].cards);
   const bluffs = cards.filter(c => c.type === 'bluff' && !c.used).length;
   const redirects = cards.filter(c => c.type === 'redirect' && !c.used).length;
 
@@ -19,56 +61,62 @@ function PlayerCards({ player }: { player: Player }) {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      gap: '4px',
+      gap: '6px',
       fontFamily: 'monospace',
-      fontSize: '12px',
-      color: '#666677',
     }}>
-      <div style={{ color: '#ffcc44', fontSize: '11px' }}>{label}</div>
-      <div style={{ display: 'flex', gap: '4px' }}>
+      <div style={{ color: '#ffcc44', fontSize: '11px' }}>YOUR HAND</div>
+      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
         {cards.map((card) => (
           <div
             key={card.id}
             style={{
-              width: '36px',
-              height: '52px',
-              borderRadius: '3px',
+              width: '64px',
+              height: '92px',
+              borderRadius: '4px',
               overflow: 'hidden',
-              opacity: card.used ? 0.2 : 1,
+              opacity: card.used ? 0.15 : 1,
               filter: card.used ? 'grayscale(1)' : 'none',
-              transition: 'opacity 0.3s, filter 0.3s',
+              transition: 'opacity 0.3s, filter 0.3s, transform 0.2s',
+              border: card.used ? '1px solid #222233' : '1px solid #3a3a5e',
+              transform: card.used ? 'scale(0.95)' : 'scale(1)',
             }}
           >
             <img
               src={card.used ? CARD_IMAGES.back : CARD_IMAGES[card.type]}
               alt={card.used ? 'used' : card.type}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-              }}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           </div>
         ))}
       </div>
-      <div style={{ fontSize: '10px' }}>
-        <span style={{ color: '#88cc88' }}>{bluffs}B</span>{' '}
-        <span style={{ color: '#cc88cc' }}>{redirects}R</span>
+      <div style={{ fontSize: '12px', color: '#666677' }}>
+        <span style={{ color: '#88cc88' }}>{bluffs} BLUFF</span>
+        {'  '}
+        <span style={{ color: '#cc88cc' }}>{redirects} REDIRECT</span>
       </div>
     </div>
   );
 }
 
-export default function CardDisplay() {
+interface Props {
+  myRole: Player;
+}
+
+export default function CardDisplay({ myRole }: Props) {
+  const opponentRole: Player = myRole === 'player1' ? 'player2' : 'player1';
+
   return (
     <div style={{
       display: 'flex',
-      justifyContent: 'space-between',
-      padding: '8px 32px',
+      flexDirection: 'column',
+      gap: '8px',
+      padding: '8px 16px',
       background: '#0d0d1a',
     }}>
-      <PlayerCards player="player1" />
-      <PlayerCards player="player2" />
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <OpponentCards player={opponentRole} />
+      </div>
+      <MyCards player={myRole} />
     </div>
   );
 }

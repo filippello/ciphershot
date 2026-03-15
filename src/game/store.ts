@@ -1,14 +1,17 @@
 import { create } from 'zustand';
 import type { GameState, Target, CardType } from './core/types';
-import { createInitialState, selectTarget, playCard, getResponder } from './core/engine';
+import { createInitialState } from './core/engine';
+import type { GameConnection } from '@/lib/matchmaking';
 
 interface GameStore {
-  // State
   gameState: GameState;
-  animating: boolean; // true while Phaser is animating
+  animating: boolean;
+  connection: GameConnection | null;
+  pendingState: GameState | null;
 
   // Actions
-  startGame: () => void;
+  setConnection: (conn: GameConnection | null) => void;
+  receiveState: (state: GameState) => void;
   chooseTarget: (target: Target) => void;
   respondWithCard: (cardType: CardType | null) => void;
   setAnimating: (animating: boolean) => void;
@@ -18,41 +21,69 @@ interface GameStore {
 export const useGameStore = create<GameStore>((set, get) => ({
   gameState: createInitialState(),
   animating: false,
+  connection: null,
+  pendingState: null,
 
-  startGame: () => {
-    set({ gameState: createInitialState(), animating: false });
+  setConnection: (connection) => {
+    set({ connection });
   },
 
-  chooseTarget: (target: Target) => {
-    const { gameState, animating } = get();
-    if (animating || gameState.phase !== 'choosingTarget') return;
-    const newState = selectTarget(gameState, target);
+  receiveState: (gameState) => {
+    const prev = get().gameState;
+    // Trigger animation if a shot was resolved (new lastResult appeared)
+    const shouldAnimate = gameState.lastResult &&
+      gameState.lastResult !== prev.lastResult &&
+      gameState.shotHistory.length > prev.shotHistory.length;
 
-    // If the responder has no cards left, auto-resolve with null
-    const responder = getResponder(newState.currentShooter);
-    const hasCards = newState.players[responder].cards.some((c) => !c.used);
-    if (!hasCards) {
-      const resolved = playCard(newState, null);
-      set({ gameState: resolved, animating: true });
-      return;
+    if (shouldAnimate) {
+      // Keep the OLD display state but inject lastResult so animation knows what to play.
+      // Buffer the real new state to apply after animation finishes.
+      const animState: GameState = {
+        ...prev,
+        lastResult: gameState.lastResult,
+        shotHistory: gameState.shotHistory,
+      };
+      set({
+        gameState: animState,
+        animating: true,
+        pendingState: gameState,
+      });
+    } else {
+      set({ gameState });
     }
-
-    set({ gameState: newState });
   },
 
-  respondWithCard: (cardType: CardType | null) => {
-    const { gameState, animating } = get();
+  chooseTarget: (target) => {
+    const { connection, animating, gameState } = get();
+    if (animating || gameState.phase !== 'choosingTarget') return;
+    if (connection) {
+      connection.chooseTarget(target);
+    }
+  },
+
+  respondWithCard: (cardType) => {
+    const { connection, animating, gameState } = get();
     if (animating || gameState.phase !== 'respondingCard') return;
-    const newState = playCard(gameState, cardType);
-    set({ gameState: newState, animating: true });
-    // Phaser will read animating=true, play animation, then call setAnimating(false)
+    if (connection) {
+      connection.playCard(cardType);
+    }
   },
 
-  setAnimating: (animating: boolean) => {
+  setAnimating: (animating) => {
+    if (!animating) {
+      // Animation done — flush the buffered state
+      const pending = get().pendingState;
+      if (pending) {
+        set({ animating: false, gameState: pending, pendingState: null });
+        return;
+      }
+    }
     set({ animating });
   },
 
   resetGame: () => {
-    set({ gameState: createInitialState(), animating: false });
+    const { connection } = get();
+    if (connection) connection.close();
+    set({ gameState: createInitialState(), animating: false, connection: null, pendingState: null });
   },
 }));
