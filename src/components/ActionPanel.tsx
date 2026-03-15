@@ -1,6 +1,7 @@
 import { useGameStore } from '@/game/store';
 import { getResponder } from '@/game/core/engine';
 import type { Player } from '@/game/core/types';
+import { playSound } from '@/lib/audio';
 
 interface Props {
   playerAddress: string;
@@ -88,7 +89,7 @@ export default function ActionPanel({ playerAddress, playerA, playerB }: Props) 
         </div>
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
           <button
-            onClick={() => chooseTarget('self')}
+            onClick={() => { playSound('choose_target', 0.5); chooseTarget('self'); }}
             style={{
               padding: '6px 20px',
               background: '#1a1a2e',
@@ -102,7 +103,7 @@ export default function ActionPanel({ playerAddress, playerA, playerB }: Props) 
             SHOOT SELF
           </button>
           <button
-            onClick={() => chooseTarget('opponent')}
+            onClick={() => { playSound('choose_target', 0.6); chooseTarget('opponent'); }}
             style={{
               padding: '6px 20px',
               background: '#1a1a2e',
@@ -152,7 +153,7 @@ export default function ActionPanel({ playerAddress, playerA, playerB }: Props) 
         </div>
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
           <button
-            onClick={() => respondWithCard('bluff')}
+            onClick={() => { playSound('card_submit', 0.5); respondWithCard('bluff'); }}
             disabled={availableBluffs === 0}
             style={{
               padding: '6px 16px',
@@ -167,7 +168,7 @@ export default function ActionPanel({ playerAddress, playerA, playerB }: Props) 
             BLUFF ({availableBluffs})
           </button>
           <button
-            onClick={() => respondWithCard('redirect')}
+            onClick={() => { playSound('card_submit', 0.5); respondWithCard('redirect'); }}
             disabled={availableRedirects === 0}
             style={{
               padding: '6px 16px',

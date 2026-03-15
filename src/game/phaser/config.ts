@@ -16,6 +16,7 @@ export function createGameConfig(parent: string): Phaser.Types.Core.GameConfig {
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,
     },
+    audio: { noAudio: true },
     scene: [GameScene],
   };
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { shortAddress } from '@/lib/wallet';
 import { connectMatchmaking, type ServerEvent, type MatchFoundEvent } from '@/lib/matchmaking';
+import { playSound, playLoop, stopLoop } from '@/lib/audio';
 
 interface Props {
   playerAddress: string;
@@ -28,9 +29,11 @@ export default function MatchmakingLobby({ playerAddress, onMatchFound, onDiscon
 
   const joinQueue = () => {
     if (connectionRef.current) connectionRef.current.close();
+    playSound('click_button', 0.5);
     setStatus('queued');
     setMessage('Connecting...');
     connectionRef.current = connectMatchmaking(playerAddress, handleEvent);
+    playLoop('queue_waiting', 0.12);
   };
 
   const leaveQueue = () => {
@@ -38,6 +41,8 @@ export default function MatchmakingLobby({ playerAddress, onMatchFound, onDiscon
       connectionRef.current.close();
       connectionRef.current = null;
     }
+    playSound('click_button', 0.4);
+    stopLoop();
     setStatus('idle');
     setMessage('');
   };
@@ -45,6 +50,7 @@ export default function MatchmakingLobby({ playerAddress, onMatchFound, onDiscon
   useEffect(() => {
     return () => {
       if (connectionRef.current) connectionRef.current.close();
+      stopLoop();
     };
   }, []);
 

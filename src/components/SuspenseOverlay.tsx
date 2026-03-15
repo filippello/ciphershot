@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { CardType } from '@/game/core/types';
+import { playSound } from '@/lib/audio';
 
 const CARD_IMAGES: Record<string, string> = {
   bluff: '/assets/cards/card_bluff.png',
@@ -27,16 +28,23 @@ export default function SuspenseOverlay({ cardPlayed, onComplete }: Props) {
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
 
-    timers.push(setTimeout(() => setPhase('count2'), 800));
-    timers.push(setTimeout(() => setPhase('count1'), 1600));
-    timers.push(setTimeout(() => setPhase('card'), 2400));
+    playSound('countdown_tick', 0.6);
+
+    timers.push(setTimeout(() => { setPhase('count2'); playSound('countdown_tick', 0.7); }, 800));
+    timers.push(setTimeout(() => { setPhase('count1'); playSound('countdown_final', 0.8); }, 1600));
+    timers.push(setTimeout(() => {
+      setPhase('card');
+      if (cardPlayed === 'redirect') playSound('redirect_reveal', 0.7);
+      else if (cardPlayed === 'bluff') playSound('bluff_reveal', 0.7);
+      else playSound('card_reveal', 0.6);
+    }, 2400));
     timers.push(setTimeout(() => {
       setPhase('done');
       onComplete();
     }, 3800));
 
     return () => timers.forEach(clearTimeout);
-  }, [onComplete]);
+  }, [onComplete, cardPlayed]);
 
   if (phase === 'done') return null;
 

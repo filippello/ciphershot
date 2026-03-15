@@ -5,6 +5,7 @@ import { GameScene } from '@/game/phaser/GameScene';
 import { useGameStore } from '@/game/store';
 import { connectToMatch } from '@/lib/matchmaking';
 import type { CardType, Player } from '@/game/core/types';
+import { playSound, stopLoop } from '@/lib/audio';
 import HUD from './HUD';
 import ActionPanel from './ActionPanel';
 import CardDisplay from './CardDisplay';
@@ -97,17 +98,34 @@ export default function GameScreen({ matchId, playerAddress, playerA, playerB, o
     scene.animateAim(result.shooter, result.originalTarget);
 
     setTimeout(() => {
+      if (result.killed) {
+        playSound('shot_live', 0.7);
+      } else {
+        playSound('shot_blank', 0.6);
+      }
       scene.animateShot(result.killed, () => {
         if (result.killed) {
           scene.showKill(result.finalTarget);
+          playSound('kill', 0.6);
+        } else {
+          playSound('chamber_advance', 0.5);
         }
         setTimeout(() => {
           scene.resetGunPosition();
+          if (!result.killed) {
+            playSound('turn_start', 0.4);
+          }
           setAnimating(false);
         }, result.killed ? 1500 : 500);
       });
     }, 500);
   }, [gameState.lastResult, setAnimating]);
+
+  // Match found — play sound and stop queue loop
+  useEffect(() => {
+    stopLoop();
+    playSound('match_found', 0.6);
+  }, []);
 
   // Establish game connection on mount
   useEffect(() => {
