@@ -54,6 +54,39 @@ document.addEventListener('keydown', unlock);
 
 let loopingAudio: HTMLAudioElement | null = null;
 
+// --- Background music (loaded on demand, not preloaded) ---
+const MUSIC_TRACKS = [
+  '/assets/sounds/musicshot1.mp3',
+  '/assets/sounds/musicshot2.mp3',
+];
+
+let musicAudio: HTMLAudioElement | null = null;
+
+export function startMusic(volume = 0.25): void {
+  stopMusic();
+  try {
+    // Pick a random track
+    const src = MUSIC_TRACKS[Math.floor(Math.random() * MUSIC_TRACKS.length)];
+    const audio = new Audio(src);
+    audio.volume = volume;
+    // When the track ends, loop it
+    audio.addEventListener('ended', () => {
+      audio.currentTime = 0;
+      audio.play().catch(() => {});
+    });
+    audio.play().catch(() => {});
+    musicAudio = audio;
+  } catch {}
+}
+
+export function stopMusic(): void {
+  if (musicAudio) {
+    musicAudio.pause();
+    musicAudio.currentTime = 0;
+    musicAudio = null;
+  }
+}
+
 export function playSound(name: SoundName, volume = 0.5): void {
   try {
     const src = SOUNDS[name];

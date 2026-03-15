@@ -5,7 +5,7 @@ import { GameScene } from '@/game/phaser/GameScene';
 import { useGameStore } from '@/game/store';
 import { connectToMatch } from '@/lib/matchmaking';
 import type { CardType, Player } from '@/game/core/types';
-import { playSound, stopLoop } from '@/lib/audio';
+import { playSound, stopLoop, startMusic, stopMusic } from '@/lib/audio';
 import HUD from './HUD';
 import ActionPanel from './ActionPanel';
 import CardDisplay from './CardDisplay';
@@ -121,10 +121,16 @@ export default function GameScreen({ matchId, playerAddress, playerA, playerB, o
     }, 500);
   }, [gameState.lastResult, setAnimating]);
 
-  // Match found — play sound and stop queue loop
+  // Match found — play sound, stop queue loop, start music
   useEffect(() => {
     stopLoop();
     playSound('match_found', 0.6);
+    // Small delay so match_found SFX plays first
+    const t = setTimeout(() => startMusic(0.2), 800);
+    return () => {
+      clearTimeout(t);
+      stopMusic();
+    };
   }, []);
 
   // Establish game connection on mount

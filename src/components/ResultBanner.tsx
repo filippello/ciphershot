@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { playSound } from '@/lib/audio';
+import { playSound, stopMusic } from '@/lib/audio';
 
 interface Props {
   winner: string | null;
@@ -14,6 +14,7 @@ export default function ResultBanner({ winner, playerAddress, playerA, playerB, 
   const isWinner = winnerAddress === playerAddress;
 
   useEffect(() => {
+    stopMusic();
     playSound(isWinner ? 'win' : 'lose', 0.6);
   }, [isWinner]);
 
