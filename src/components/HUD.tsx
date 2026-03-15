@@ -11,11 +11,11 @@ export default function HUD() {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: '8px 16px',
+      padding: '4px 16px',
       background: '#0d0d1a',
       color: '#8888aa',
       fontFamily: 'monospace',
-      fontSize: '14px',
+      fontSize: '12px',
       borderBottom: '1px solid #2a2a3e',
     }}>
       <div>

@@ -29,7 +29,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   receiveState: (gameState) => {
-    const prev = get().gameState;
+    const { gameState: prev, animating } = get();
     // Trigger animation if a shot was resolved (new lastResult appeared)
     const shouldAnimate = gameState.lastResult &&
       gameState.lastResult !== prev.lastResult &&
@@ -48,6 +48,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
         animating: true,
         pendingState: gameState,
       });
+    } else if (animating) {
+      // Still animating — buffer this state, don't update display yet
+      set({ pendingState: gameState });
     } else {
       set({ gameState });
     }

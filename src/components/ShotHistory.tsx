@@ -7,12 +7,12 @@ export default function ShotHistory() {
 
   return (
     <div style={{
-      padding: '8px 16px',
+      padding: '4px 16px',
       background: '#0a0a16',
       fontFamily: 'monospace',
-      fontSize: '11px',
+      fontSize: '10px',
       color: '#555566',
-      maxHeight: '80px',
+      maxHeight: '50px',
       overflowY: 'auto',
       borderTop: '1px solid #1a1a2e',
     }}>

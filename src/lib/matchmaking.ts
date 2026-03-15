@@ -1,6 +1,7 @@
-// Derive WS port from current page port (handles Docker port mapping)
-const wsPort = Number(window.location.port) === 9000 ? 9001 : 3001;
-const WS_URL = `ws://${window.location.hostname}:${wsPort}`;
+// In production, use VITE_WS_URL env var (e.g. wss://ciphershot-server.up.railway.app)
+// In dev, derive port from current page port (handles Docker port mapping)
+const WS_URL = import.meta.env.VITE_WS_URL
+  || `ws://${window.location.hostname}:${Number(window.location.port) === 9000 ? 9001 : 3001}`;
 
 export interface MatchFoundEvent {
   type: 'match_found';

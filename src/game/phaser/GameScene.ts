@@ -1,18 +1,20 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from './config';
 
-// Player positions
-const P1_X = 140;
-const P2_X = 820;
-const PLAYER_Y = 370;
+// Player positions — pushed closer to table edges, lower on screen
+const P1_X = 115;
+const P2_X = 845;
+const PLAYER_Y = 400;
 
-// Player display size
-const P_W = 240;
-const P_H = 360;
+// Player display size — bigger to fill more of the scene
+const P_W = 300;
+const P_H = 420;
 
-// Gun
+// Gun — centered on table, bigger
 const GUN_X = 480; // GAME_WIDTH/2
-const GUN_Y = 340;
+const GUN_Y = 380;
+const GUN_W = 180;
+const GUN_H = 180;
 
 export class GameScene extends Phaser.Scene {
   // Visual elements
@@ -59,8 +61,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   private createTable(): void {
-    this.table = this.add.image(GAME_WIDTH / 2, GAME_HEIGHT - 100, 'table');
-    this.table.setDisplaySize(500, 280);
+    this.table = this.add.image(GAME_WIDTH / 2, GAME_HEIGHT - 80, 'table');
+    this.table.setDisplaySize(620, 340);
     this.table.setDepth(1);
   }
 
@@ -89,18 +91,19 @@ export class GameScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(3);
 
     // Shooter glow indicator (behind active player)
-    this.shooterGlow = this.add.ellipse(P1_X, PLAYER_Y, 160, 220, 0xff4444, 0);
+    this.shooterGlow = this.add.ellipse(P1_X, PLAYER_Y, 200, 280, 0xff4444, 0);
     this.shooterGlow.setDepth(1);
   }
 
   private createGun(): void {
     this.gun = this.add.image(GUN_X, GUN_Y, 'gun');
-    this.gun.setDisplaySize(100, 100);
+    this.gun.setDisplaySize(GUN_W, GUN_H);
     this.gun.setDepth(3);
+    // Sprite points LEFT by default — no flip needed for resting position
   }
 
   private createMuzzleFlash(): void {
-    this.muzzleFlash = this.add.ellipse(GUN_X, GUN_Y, 50, 50, 0xffff00, 0);
+    this.muzzleFlash = this.add.ellipse(GUN_X, GUN_Y, 60, 60, 0xffff00, 0);
     this.muzzleFlash.setDepth(4);
   }
 
@@ -122,20 +125,19 @@ export class GameScene extends Phaser.Scene {
     const isLeft = shooter === 'player1';
 
     // Gun moves to the shooter's side (they pick it up)
-    const shooterX = isLeft ? P1_X + 60 : P2_X - 60;
+    const shooterX = isLeft ? P1_X + 100 : P2_X - 100;
 
-    // If shooting self, gun points inward (toward shooter)
-    // If shooting opponent, gun points outward (toward opponent)
-    const pointsRight = target === 'self'
-      ? (isLeft ? false : true)   // self: P1 points left at self, P2 points right at self
-      : (isLeft ? true : false);  // opponent: P1 points right at P2, P2 points left at P1
+    // Sprite naturally points LEFT.
+    // flipX=false → points LEFT, flipX=true → points RIGHT
+    // P1 (left): shoot self → point left (false), shoot opponent → point right (true)
+    // P2 (right): shoot self → point right (true), shoot opponent → point left (false)
+    const shouldFlip = target === 'self' ? !isLeft : isLeft;
 
-    const flipX = pointsRight ? 1 : -1;
+    this.gun.setFlipX(shouldFlip);
 
     this.tweens.add({
       targets: this.gun,
       x: shooterX,
-      scaleX: Math.abs(this.gun.scaleX) * flipX,
       duration: 400,
       ease: 'Power2',
     });
@@ -143,18 +145,20 @@ export class GameScene extends Phaser.Scene {
 
   public animateShot(isLive: boolean, onComplete: () => void): void {
     if (isLive) {
-      // Flash at gun tip
-      this.muzzleFlash.setPosition(this.gun.x, this.gun.y - 10);
+      // Flash at gun barrel tip — offset toward where gun is pointing
+      const tipOffsetX = this.gun.flipX ? (GUN_W / 2) : -(GUN_W / 2);
+      this.muzzleFlash.setPosition(this.gun.x + tipOffsetX, this.gun.y);
       this.muzzleFlash.setAlpha(1);
       this.muzzleFlash.setScale(1);
 
       // Camera shake
       this.cameras.main.shake(300, 0.015);
 
-      // Gun recoil
+      // Gun recoil — kick back opposite to where it's pointing
+      const recoilDir = this.gun.flipX ? -25 : 25;
       this.tweens.add({
         targets: this.gun,
-        x: this.gun.x + (this.gun.scaleX < 0 ? -20 : 20),
+        x: this.gun.x + recoilDir,
         duration: 50,
         yoyo: true,
         ease: 'Power4',
@@ -180,6 +184,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   public resetGunPosition(): void {
+    this.gun.setFlipX(false);
     this.tweens.add({
       targets: this.gun,
       x: GUN_X,
@@ -223,7 +228,8 @@ export class GameScene extends Phaser.Scene {
 
     // Reset gun
     this.gun.setPosition(GUN_X, GUN_Y);
-    this.gun.setDisplaySize(100, 100);
+    this.gun.setDisplaySize(GUN_W, GUN_H);
+    this.gun.setFlipX(false);
 
     // Reset effects
     this.muzzleFlash.setAlpha(0);

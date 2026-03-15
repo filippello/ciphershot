@@ -7,6 +7,7 @@
     "dev:client": "vite --host 0.0.0.0 --port 3000",
     "dev:server": "tsx server/index.ts",
     "build": "tsc && vite build",
+    "build:client": "vite build",
     "preview": "vite preview"
   },
   "keywords": [],
@@ -23,6 +24,7 @@
     "uuid": "^11.1.0",
     "viem": "^2.47.2",
     "ws": "^8.18.0",
+    "tsx": "^4.19.0",
     "zustand": "^5.0.11"
   },
   "devDependencies": {
@@ -31,7 +33,6 @@
     "@types/ws": "^8.5.13",
     "@vitejs/plugin-react": "^6.0.0",
     "concurrently": "^9.1.0",
-    "tsx": "^4.19.0",
     "vite": "^8.0.0"
   }
 }

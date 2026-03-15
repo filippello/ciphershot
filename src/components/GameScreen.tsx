@@ -131,6 +131,8 @@ export default function GameScreen({ matchId, playerAddress, playerA, playerB, o
       flexDirection: 'column',
       maxWidth: '960px',
       width: '100%',
+      height: '100vh',
+      overflow: 'hidden',
       border: '1px solid #2a2a3e',
       position: 'relative',
     }}>
@@ -169,11 +171,11 @@ export default function GameScreen({ matchId, playerAddress, playerA, playerB, o
         )}
       </div>
       <HUD />
-      <div style={{ position: 'relative' }}>
+      <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
         <div
           id="phaser-container"
           ref={containerRef}
-          style={{ width: '960px', maxWidth: '100%', aspectRatio: '16/9' }}
+          style={{ width: '100%', height: '100%' }}
         />
         {showSuspense && (
           <SuspenseOverlay

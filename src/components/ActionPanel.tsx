@@ -31,13 +31,13 @@ export default function ActionPanel({ playerAddress, playerA, playerB }: Props) 
     const iWon = winner === myRole;
     return (
       <div style={{
-        padding: '16px',
+        padding: '6px 16px',
         background: '#0d0d1a',
         borderTop: '1px solid #2a2a3e',
         textAlign: 'center',
         fontFamily: 'monospace',
       }}>
-        <div style={{ color: iWon ? '#88cc88' : '#ff4444', fontSize: '24px', marginBottom: '12px' }}>
+        <div style={{ color: iWon ? '#88cc88' : '#ff4444', fontSize: '24px', marginBottom: '4px' }}>
           {iWon ? 'YOU WIN' : 'YOU LOSE'}
         </div>
       </div>
@@ -47,7 +47,7 @@ export default function ActionPanel({ playerAddress, playerA, playerB }: Props) 
   if (animating || phase === 'resolving') {
     return (
       <div style={{
-        padding: '16px',
+        padding: '6px 16px',
         background: '#0d0d1a',
         borderTop: '1px solid #2a2a3e',
         textAlign: 'center',
@@ -63,7 +63,7 @@ export default function ActionPanel({ playerAddress, playerA, playerB }: Props) 
     if (!isMyTurnToShoot) {
       return (
         <div style={{
-          padding: '16px',
+          padding: '6px 16px',
           background: '#0d0d1a',
           borderTop: '1px solid #2a2a3e',
           textAlign: 'center',
@@ -77,20 +77,20 @@ export default function ActionPanel({ playerAddress, playerA, playerB }: Props) 
 
     return (
       <div style={{
-        padding: '16px',
+        padding: '6px 16px',
         background: '#0d0d1a',
         borderTop: '1px solid #2a2a3e',
         textAlign: 'center',
         fontFamily: 'monospace',
       }}>
-        <div style={{ color: '#8888aa', marginBottom: '12px' }}>
+        <div style={{ color: '#8888aa', marginBottom: '4px' }}>
           Your turn — Choose your target:
         </div>
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
           <button
             onClick={() => chooseTarget('self')}
             style={{
-              padding: '10px 28px',
+              padding: '6px 20px',
               background: '#1a1a2e',
               color: '#aaaacc',
               border: '1px solid #3a3a5e',
@@ -104,7 +104,7 @@ export default function ActionPanel({ playerAddress, playerA, playerB }: Props) 
           <button
             onClick={() => chooseTarget('opponent')}
             style={{
-              padding: '10px 28px',
+              padding: '6px 20px',
               background: '#1a1a2e',
               color: '#ff6666',
               border: '1px solid #ff4444',
@@ -124,7 +124,7 @@ export default function ActionPanel({ playerAddress, playerA, playerB }: Props) 
     if (!isMyTurnToRespond) {
       return (
         <div style={{
-          padding: '16px',
+          padding: '6px 16px',
           background: '#0d0d1a',
           borderTop: '1px solid #2a2a3e',
           textAlign: 'center',
@@ -141,13 +141,13 @@ export default function ActionPanel({ playerAddress, playerA, playerB }: Props) 
 
     return (
       <div style={{
-        padding: '16px',
+        padding: '6px 16px',
         background: '#0d0d1a',
         borderTop: '1px solid #2a2a3e',
         textAlign: 'center',
         fontFamily: 'monospace',
       }}>
-        <div style={{ color: '#8888aa', marginBottom: '12px' }}>
+        <div style={{ color: '#8888aa', marginBottom: '4px' }}>
           Respond — Play a card:
         </div>
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
@@ -155,7 +155,7 @@ export default function ActionPanel({ playerAddress, playerA, playerB }: Props) 
             onClick={() => respondWithCard('bluff')}
             disabled={availableBluffs === 0}
             style={{
-              padding: '10px 20px',
+              padding: '6px 16px',
               background: availableBluffs > 0 ? '#1a2e1a' : '#1a1a1a',
               color: availableBluffs > 0 ? '#88cc88' : '#444444',
               border: `1px solid ${availableBluffs > 0 ? '#3a5e3a' : '#333333'}`,
@@ -170,7 +170,7 @@ export default function ActionPanel({ playerAddress, playerA, playerB }: Props) 
             onClick={() => respondWithCard('redirect')}
             disabled={availableRedirects === 0}
             style={{
-              padding: '10px 20px',
+              padding: '6px 16px',
               background: availableRedirects > 0 ? '#2e1a2e' : '#1a1a1a',
               color: availableRedirects > 0 ? '#cc88cc' : '#444444',
               border: `1px solid ${availableRedirects > 0 ? '#5e3a5e' : '#333333'}`,

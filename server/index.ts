@@ -3,13 +3,13 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { addToQueue, removeFromQueue } from './matchmaking.js';
 import { joinMatch, handleChooseTarget, handlePlayCard, broadcastState } from './matchStore.js';
 
-const PORT = 3001;
+const PORT = Number(process.env.PORT) || 3001;
 
 const server = http.createServer((_req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'application/json');
   res.writeHead(200);
-  res.end(JSON.stringify({ status: 'ok' }));
+  res.end(JSON.stringify({ status: 'ok', port: PORT }));
 });
 
 const wss = new WebSocketServer({ server });
