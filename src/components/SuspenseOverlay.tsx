@@ -10,11 +10,13 @@ const CARD_IMAGES: Record<string, string> = {
 interface Props {
   cardPlayed: CardType | null;
   onComplete: () => void;
+  /** FHE mode: card is unknown during countdown, revealed after decrypt */
+  fheMode?: boolean;
 }
 
-type Phase = 'count3' | 'count2' | 'count1' | 'card' | 'done';
+type Phase = 'count3' | 'count2' | 'count1' | 'decrypting' | 'card' | 'done';
 
-export default function SuspenseOverlay({ cardPlayed, onComplete }: Props) {
+export default function SuspenseOverlay({ cardPlayed, onComplete, fheMode }: Props) {
   const [phase, setPhase] = useState<Phase>('count3');
 
   useEffect(() => {
@@ -24,19 +26,44 @@ export default function SuspenseOverlay({ cardPlayed, onComplete }: Props) {
 
     timers.push(setTimeout(() => { setPhase('count2'); playSound('countdown_tick', 0.7); }, 800));
     timers.push(setTimeout(() => { setPhase('count1'); playSound('countdown_final', 0.8); }, 1600));
-    timers.push(setTimeout(() => {
-      setPhase('card');
+
+    if (fheMode && cardPlayed === null) {
+      // FHE mode: show "DECRYPTING..." while waiting for Gateway
+      timers.push(setTimeout(() => { setPhase('decrypting'); }, 2400));
+      // The overlay will stay in 'decrypting' phase until cardPlayed updates
+      // and the parent calls a re-render or completes
+    } else {
+      // Normal flow: show card reveal
+      timers.push(setTimeout(() => {
+        setPhase('card');
+        if (cardPlayed === 'redirect') playSound('redirect_reveal', 0.7);
+        else if (cardPlayed === 'bluff') playSound('bluff_reveal', 0.7);
+        else playSound('card_reveal', 0.6);
+      }, 2400));
+      timers.push(setTimeout(() => {
+        setPhase('done');
+        onComplete();
+      }, 3800));
+    }
+
+    return () => timers.forEach(clearTimeout);
+  }, [onComplete, cardPlayed, fheMode]);
+
+  // When card becomes available in FHE mode (decryption finished)
+  useEffect(() => {
+    if (phase === 'decrypting' && cardPlayed !== null) {
       if (cardPlayed === 'redirect') playSound('redirect_reveal', 0.7);
       else if (cardPlayed === 'bluff') playSound('bluff_reveal', 0.7);
       else playSound('card_reveal', 0.6);
-    }, 2400));
-    timers.push(setTimeout(() => {
-      setPhase('done');
-      onComplete();
-    }, 3800));
+      setPhase('card');
 
-    return () => timers.forEach(clearTimeout);
-  }, [onComplete, cardPlayed]);
+      const timer = setTimeout(() => {
+        setPhase('done');
+        onComplete();
+      }, 1400);
+      return () => clearTimeout(timer);
+    }
+  }, [phase, cardPlayed, onComplete]);
 
   if (phase === 'done') return null;
 
@@ -60,6 +87,31 @@ export default function SuspenseOverlay({ cardPlayed, onComplete }: Props) {
           animation: 'countPop 0.7s ease-out',
         }}>
           {phase === 'count3' ? '3' : phase === 'count2' ? '2' : '1'}
+        </div>
+      )}
+
+      {phase === 'decrypting' && (
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '16px',
+        }}>
+          <div className="text-glow-yellow" style={{
+            fontSize: '20px',
+            color: '#ffcc44',
+            letterSpacing: '3px',
+            animation: 'pulse 1.2s infinite',
+          }}>
+            DECRYPTING
+          </div>
+          <div style={{
+            fontSize: '10px',
+            color: '#666677',
+            letterSpacing: '2px',
+          }}>
+            Zama FHE Gateway
+          </div>
         </div>
       )}
 

@@ -11,6 +11,9 @@ declare global {
   }
 }
 
+// Zama fhEVM runs on Sepolia — use Sepolia chain config
+const chain = sepolia;
+
 export function hasWalletProvider(): boolean {
   return typeof window !== 'undefined' && !!window.ethereum;
 }
@@ -21,11 +24,22 @@ export async function connectWallet(): Promise<{ address: Address; client: Walle
   }
 
   const client = createWalletClient({
-    chain: sepolia,
+    chain,
     transport: custom(window.ethereum),
   });
 
   const [address] = await client.requestAddresses();
+
+  // Ensure wallet is on the right chain
+  try {
+    await window.ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: `0x${chain.id.toString(16)}` }],
+    });
+  } catch {
+    // Chain not added or user rejected — continue anyway
+  }
+
   return { address, client };
 }
 

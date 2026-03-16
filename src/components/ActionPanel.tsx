@@ -11,6 +11,7 @@ interface Props {
 export default function ActionPanel({ playerAddress, playerA, playerB }: Props) {
   const gameState = useGameStore((s) => s.gameState);
   const animating = useGameStore((s) => s.animating);
+  const txPending = useGameStore((s) => s.txPending);
 
   const { phase, currentShooter, players, winner } = gameState;
   const responder = getResponder(currentShooter);
@@ -40,6 +41,17 @@ export default function ActionPanel({ playerAddress, playerA, playerB }: Props) 
         }}>
           {iWon ? 'YOU WIN' : 'YOU LOSE'}
         </div>
+      </div>
+    );
+  }
+
+  // Transaction pending (FHE mode)
+  if (txPending) {
+    return (
+      <div style={{ ...panelStyle, color: '#ffcc44', fontSize: '8px' }}>
+        <span style={{ animation: 'pulse 1s infinite' }}>
+          Encrypting & sending transaction...
+        </span>
       </div>
     );
   }

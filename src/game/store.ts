@@ -8,13 +8,15 @@ interface GameStore {
   animating: boolean;
   connection: GameConnection | null;
   pendingState: GameState | null;
+  txPending: boolean;
 
   // Actions
   setConnection: (conn: GameConnection | null) => void;
   receiveState: (state: GameState) => void;
-  chooseTarget: (target: Target) => void;
-  respondWithCard: (cardType: CardType | null) => void;
+  chooseTarget: (target: Target) => Promise<void>;
+  respondWithCard: (cardType: CardType | null) => Promise<void>;
   setAnimating: (animating: boolean) => void;
+  setTxPending: (pending: boolean) => void;
   resetGame: () => void;
 }
 
@@ -23,6 +25,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   animating: false,
   connection: null,
   pendingState: null,
+  txPending: false,
 
   setConnection: (connection) => {
     set({ connection });
@@ -30,14 +33,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   receiveState: (gameState) => {
     const { gameState: prev, animating } = get();
-    // Trigger animation if a shot was resolved (new lastResult appeared)
     const shouldAnimate = gameState.lastResult &&
       gameState.lastResult !== prev.lastResult &&
       gameState.shotHistory.length > prev.shotHistory.length;
 
     if (shouldAnimate) {
-      // Keep the OLD display state but inject lastResult so animation knows what to play.
-      // Buffer the real new state to apply after animation finishes.
       const animState: GameState = {
         ...prev,
         lastResult: gameState.lastResult,
@@ -47,34 +47,47 @@ export const useGameStore = create<GameStore>((set, get) => ({
         gameState: animState,
         animating: true,
         pendingState: gameState,
+        txPending: false,
       });
     } else if (animating) {
-      // Still animating — buffer this state, don't update display yet
-      set({ pendingState: gameState });
+      set({ pendingState: gameState, txPending: false });
     } else {
-      set({ gameState });
+      set({ gameState, txPending: false });
     }
   },
 
-  chooseTarget: (target) => {
-    const { connection, animating, gameState } = get();
-    if (animating || gameState.phase !== 'choosingTarget') return;
+  chooseTarget: async (target) => {
+    const { connection, animating, gameState, txPending } = get();
+    if (animating || txPending || gameState.phase !== 'choosingTarget') return;
     if (connection) {
-      connection.chooseTarget(target);
+      if (connection.fheMode) {
+        set({ txPending: true });
+      }
+      try {
+        await connection.chooseTarget(target);
+      } catch {
+        set({ txPending: false });
+      }
     }
   },
 
-  respondWithCard: (cardType) => {
-    const { connection, animating, gameState } = get();
-    if (animating || gameState.phase !== 'respondingCard') return;
+  respondWithCard: async (cardType) => {
+    const { connection, animating, gameState, txPending } = get();
+    if (animating || txPending || gameState.phase !== 'respondingCard') return;
     if (connection) {
-      connection.playCard(cardType);
+      if (connection.fheMode) {
+        set({ txPending: true });
+      }
+      try {
+        await connection.playCard(cardType);
+      } catch {
+        set({ txPending: false });
+      }
     }
   },
 
   setAnimating: (animating) => {
     if (!animating) {
-      // Animation done — flush the buffered state
       const pending = get().pendingState;
       if (pending) {
         set({ animating: false, gameState: pending, pendingState: null });
@@ -84,9 +97,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ animating });
   },
 
+  setTxPending: (txPending) => {
+    set({ txPending });
+  },
+
   resetGame: () => {
     const { connection } = get();
     if (connection) connection.close();
-    set({ gameState: createInitialState(), animating: false, connection: null, pendingState: null });
+    set({
+      gameState: createInitialState(),
+      animating: false,
+      connection: null,
+      pendingState: null,
+      txPending: false,
+    });
   },
 }));

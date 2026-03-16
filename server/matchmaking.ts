@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { WebSocket } from 'ws';
-import { createMatch } from './matchStore.js';
+import { createMatch, createFheMatch } from './matchStore.js';
+import { createMatchOnChain } from './contractListener.js';
 
 interface QueueEntry {
   player: string;
@@ -8,6 +9,13 @@ interface QueueEntry {
 }
 
 const queue: QueueEntry[] = [];
+
+// Set by server/index.ts based on whether contract is configured
+let fheEnabled = false;
+
+export function setFheMode(enabled: boolean): void {
+  fheEnabled = enabled;
+}
 
 export function addToQueue(player: string, ws: WebSocket): void {
   // Don't allow duplicate entries
@@ -29,7 +37,7 @@ export function removeFromQueue(player: string): void {
   if (idx !== -1) queue.splice(idx, 1);
 }
 
-function tryMatch(): void {
+async function tryMatch(): Promise<void> {
   while (queue.length >= 2) {
     const a = queue.shift()!;
     const b = queue.shift()!;
@@ -45,7 +53,22 @@ function tryMatch(): void {
     }
 
     const matchId = uuidv4();
-    createMatch(matchId, a.player, b.player);
+
+    if (fheEnabled) {
+      // FHE mode: create match on-chain (encrypted chamber + cards)
+      try {
+        const matchIdBytes = await createMatchOnChain(matchId, a.player, b.player);
+        createFheMatch(matchId, matchIdBytes, a.player, b.player);
+        console.log(`[FHE] Match created on-chain: ${matchId} | ${a.player.slice(0, 8)}... vs ${b.player.slice(0, 8)}...`);
+      } catch (err) {
+        console.error('[FHE] Failed to create on-chain match:', err);
+        // Fall back to legacy mode for this match
+        createMatch(matchId, a.player, b.player);
+        console.log(`[FHE] Fallback to legacy match: ${matchId}`);
+      }
+    } else {
+      createMatch(matchId, a.player, b.player);
+    }
 
     const event = JSON.stringify({
       type: 'match_found',

@@ -12,6 +12,11 @@ function OpponentCards({ player }: { player: Player }) {
   const bluffs = cards.filter(c => c.type === 'bluff' && !c.used).length;
   const redirects = cards.filter(c => c.type === 'redirect' && !c.used).length;
 
+  // In FHE mode, opponent card counts are unknown (encrypted on-chain)
+  // The connection.fheMode flag determines display
+  const connection = useGameStore((s) => s.connection);
+  const fheMode = connection?.fheMode ?? false;
+
   return (
     <div style={{
       display: 'flex',
@@ -40,10 +45,17 @@ function OpponentCards({ player }: { player: Player }) {
           </div>
         ))}
       </div>
-      <span>
-        <span style={{ color: '#88cc88' }}>{bluffs}B</span>{' '}
-        <span style={{ color: '#cc88cc' }}>{redirects}R</span>
-      </span>
+      {fheMode ? (
+        <span style={{ color: '#666677', letterSpacing: '1px' }}>
+          <span style={{ color: '#88cc88' }}>?B</span>{' '}
+          <span style={{ color: '#cc88cc' }}>?R</span>
+        </span>
+      ) : (
+        <span>
+          <span style={{ color: '#88cc88' }}>{bluffs}B</span>{' '}
+          <span style={{ color: '#cc88cc' }}>{redirects}R</span>
+        </span>
+      )}
     </div>
   );
 }

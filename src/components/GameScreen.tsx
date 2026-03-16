@@ -26,6 +26,7 @@ interface Props {
 export default function GameScreen({ matchId, playerAddress, playerA, playerB, onLeaveMatch }: Props) {
   const gameState = useGameStore((s) => s.gameState);
   const animating = useGameStore((s) => s.animating);
+  const txPending = useGameStore((s) => s.txPending);
   const receiveState = useGameStore((s) => s.receiveState);
   const setAnimating = useGameStore((s) => s.setAnimating);
   const setConnection = useGameStore((s) => s.setConnection);
@@ -41,6 +42,7 @@ export default function GameScreen({ matchId, playerAddress, playerA, playerB, o
   // Suspense state
   const [showSuspense, setShowSuspense] = useState(false);
   const [suspenseCard, setSuspenseCard] = useState<CardType | null>(null);
+  const [fheSuspense, setFheSuspense] = useState(false);
   const prevAnimatingRef = useRef(false);
   const prevShotIndexRef = useRef(gameState.currentShotIndex);
 
@@ -92,6 +94,7 @@ export default function GameScreen({ matchId, playerAddress, playerA, playerB, o
     // New shot resolved → start suspense countdown
     if (animating && !prevAnimatingRef.current && gameState.lastResult) {
       setSuspenseCard(gameState.lastResult.cardPlayed);
+      setFheSuspense(false);
       setShowSuspense(true);
     }
     prevAnimatingRef.current = animating;
@@ -112,11 +115,11 @@ export default function GameScreen({ matchId, playerAddress, playerA, playerB, o
   const showTargeting = gameState.phase === 'choosingTarget'
     && isMyTurnToShoot
     && !animating
+    && !txPending
     && !targetSelected;
 
   const handleTargetSelect = useCallback((target: 'self' | 'opponent') => {
     setTargetSelected(true);
-    // Unhighlight before selecting
     if (gameRef.current) {
       const scene = gameRef.current.scene.getScene('GameScene') as GameScene;
       if (scene && scene.scene.isActive()) {
@@ -133,6 +136,7 @@ export default function GameScreen({ matchId, playerAddress, playerA, playerB, o
   const showCardSelect = gameState.phase === 'respondingCard'
     && isMyTurnToRespond
     && !animating
+    && !txPending
     && !cardSelected;
   const myCards = gameState.players[myRole].cards;
 
@@ -192,11 +196,20 @@ export default function GameScreen({ matchId, playerAddress, playerA, playerB, o
     }, 500);
   }, [gameState.lastResult, setAnimating]);
 
+  // FHE card_submitted callback — start suspense with unknown card
+  const handleCardSubmitted = useCallback(() => {
+    // In FHE mode, when we receive card_submitted event (card is encrypted,
+    // nobody knows what it is), start suspense with fheSuspense=true.
+    // The card will be revealed later when RoundFinalized event arrives.
+    setSuspenseCard(null);
+    setFheSuspense(true);
+    setShowSuspense(true);
+  }, []);
+
   // Match found — play sound, stop queue loop, start music
   useEffect(() => {
     stopLoop();
     playSound('match_found', 0.6);
-    // Small delay so match_found SFX plays first
     const t = setTimeout(() => startMusic(0.2), 800);
     return () => {
       clearTimeout(t);
@@ -204,21 +217,25 @@ export default function GameScreen({ matchId, playerAddress, playerA, playerB, o
     };
   }, []);
 
-  // Establish game connection on mount
+  // Establish game connection on mount — pass onCardSubmitted for FHE flow
   useEffect(() => {
     const conn = connectToMatch(
       matchId,
       playerAddress,
       (newState) => receiveState(newState),
       (err) => console.error('Match connection error:', err),
+      handleCardSubmitted,
     );
     setConnection(conn);
+
+    // Initialize FHE SDK eagerly if in FHE mode
+    // (conn.fheMode is set after first state_update, so we init lazily in GameConnection)
 
     return () => {
       conn.close();
       setConnection(null);
     };
-  }, [matchId, playerAddress, receiveState, setConnection]);
+  }, [matchId, playerAddress, receiveState, setConnection, handleCardSubmitted]);
 
   return (
     <main className="crt-panel" style={{
@@ -278,6 +295,7 @@ export default function GameScreen({ matchId, playerAddress, playerA, playerB, o
           <SuspenseOverlay
             cardPlayed={suspenseCard}
             onComplete={handleSuspenseComplete}
+            fheMode={fheSuspense}
           />
         )}
       </div>

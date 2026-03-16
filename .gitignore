@@ -11,3 +11,9 @@ coverage/
 *.tsbuildinfo
 .claude-memory-backup/
 .vercel
+
+# Hardhat / chain artifacts
+chain/artifacts/
+chain/cache/
+chain/fhevmTemp/
+chain/types/
