@@ -74,8 +74,8 @@ export class GameScene extends Phaser.Scene {
     this.playerLeft.setDepth(2);
 
     this.playerLeftLabel = this.add.text(P1_X, PLAYER_Y - P_H / 2 - 12, 'P1', {
-      fontFamily: 'monospace',
-      fontSize: '14px',
+      fontFamily: "'Press Start 2P', monospace",
+      fontSize: '12px',
       color: '#ffcc44',
     }).setOrigin(0.5).setDepth(3);
 
@@ -85,8 +85,8 @@ export class GameScene extends Phaser.Scene {
     this.playerRight.setDepth(2);
 
     this.playerRightLabel = this.add.text(P2_X, PLAYER_Y - P_H / 2 - 12, 'P2', {
-      fontFamily: 'monospace',
-      fontSize: '14px',
+      fontFamily: "'Press Start 2P', monospace",
+      fontSize: '12px',
       color: '#ffcc44',
     }).setOrigin(0.5).setDepth(3);
 
@@ -105,6 +105,67 @@ export class GameScene extends Phaser.Scene {
   private createMuzzleFlash(): void {
     this.muzzleFlash = this.add.ellipse(GUN_X, GUN_Y, 60, 60, 0xffff00, 0);
     this.muzzleFlash.setDepth(4);
+  }
+
+  // --- TARGETING HELPERS (called from React overlay) ---
+
+  public highlightTarget(player: 'player1' | 'player2'): void {
+    const sprite = player === 'player1' ? this.playerLeft : this.playerRight;
+    const label = player === 'player1' ? this.playerLeftLabel : this.playerRightLabel;
+
+    // Red tint on the sprite
+    sprite.setTint(0xff4444);
+
+    // Scale up
+    this.tweens.add({
+      targets: sprite,
+      displayWidth: P_W * 1.06,
+      displayHeight: P_H * 1.06,
+      duration: 120,
+      ease: 'Power2',
+    });
+
+    // Red glow behind player
+    const x = player === 'player1' ? P1_X : P2_X;
+    this.shooterGlow.setPosition(x, PLAYER_Y);
+    this.shooterGlow.setFillStyle(0xff4444);
+    this.tweens.add({
+      targets: this.shooterGlow,
+      alpha: 0.25,
+      duration: 120,
+      ease: 'Power2',
+    });
+
+    // Label turns red
+    label.setColor('#ff4444');
+  }
+
+  public unhighlightTarget(player: 'player1' | 'player2'): void {
+    const sprite = player === 'player1' ? this.playerLeft : this.playerRight;
+    const label = player === 'player1' ? this.playerLeftLabel : this.playerRightLabel;
+
+    // Reset tint
+    sprite.clearTint();
+
+    // Scale back
+    this.tweens.add({
+      targets: sprite,
+      displayWidth: P_W,
+      displayHeight: P_H,
+      duration: 120,
+      ease: 'Power2',
+    });
+
+    // Dim glow
+    this.tweens.add({
+      targets: this.shooterGlow,
+      alpha: 0,
+      duration: 120,
+      ease: 'Power2',
+    });
+
+    // Label back to yellow
+    label.setColor('#ffcc44');
   }
 
   // --- PUBLIC ANIMATION METHODS (called from React/store) ---

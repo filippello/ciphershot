@@ -12,7 +12,6 @@ interface Props {
 export default function ActionPanel({ playerAddress, playerA, playerB }: Props) {
   const gameState = useGameStore((s) => s.gameState);
   const animating = useGameStore((s) => s.animating);
-  const chooseTarget = useGameStore((s) => s.chooseTarget);
   const respondWithCard = useGameStore((s) => s.respondWithCard);
 
   const { phase, currentShooter, players, winner } = gameState;
@@ -66,26 +65,8 @@ export default function ActionPanel({ playerAddress, playerA, playerB }: Props) 
     }
 
     return (
-      <div style={panelStyle}>
-        <div style={{ color: '#8888aa', marginBottom: '8px', fontSize: '8px' }}>
-          Your turn — Choose your target:
-        </div>
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-          <button
-            onClick={() => { playSound('choose_target', 0.5); chooseTarget('self'); }}
-            className="arcade-btn arcade-btn-neutral"
-            style={{ padding: '8px 16px', fontSize: '9px' }}
-          >
-            SHOOT SELF
-          </button>
-          <button
-            onClick={() => { playSound('choose_target', 0.6); chooseTarget('opponent'); }}
-            className="arcade-btn arcade-btn-red"
-            style={{ padding: '8px 16px', fontSize: '9px' }}
-          >
-            SHOOT OPPONENT
-          </button>
-        </div>
+      <div style={{ ...panelStyle, color: '#ff4444', fontSize: '8px' }}>
+        Click on a player to shoot
       </div>
     );
   }

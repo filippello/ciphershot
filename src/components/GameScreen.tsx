@@ -11,6 +11,7 @@ import ActionPanel from './ActionPanel';
 import CardDisplay from './CardDisplay';
 import ShotHistory from './ShotHistory';
 import SuspenseOverlay from './SuspenseOverlay';
+import TargetingOverlay from './TargetingOverlay';
 
 interface Props {
   matchId: string;
@@ -26,6 +27,7 @@ export default function GameScreen({ matchId, playerAddress, playerA, playerB, o
   const receiveState = useGameStore((s) => s.receiveState);
   const setAnimating = useGameStore((s) => s.setAnimating);
   const setConnection = useGameStore((s) => s.setConnection);
+  const chooseTarget = useGameStore((s) => s.chooseTarget);
   const isPlayerA = playerAddress === playerA;
   const myRole: Player = isPlayerA ? 'player1' : 'player2';
 
@@ -38,6 +40,9 @@ export default function GameScreen({ matchId, playerAddress, playerA, playerB, o
   const [suspenseCard, setSuspenseCard] = useState<CardType | null>(null);
   const prevAnimatingRef = useRef(false);
   const prevShotIndexRef = useRef(gameState.currentShotIndex);
+
+  // Targeting state — track if we already chose to avoid re-showing overlay
+  const [targetSelected, setTargetSelected] = useState(false);
 
   // Init Phaser
   useEffect(() => {
@@ -85,6 +90,49 @@ export default function GameScreen({ matchId, playerAddress, playerA, playerB, o
     }
     prevAnimatingRef.current = animating;
   }, [gameState, animating]);
+
+  // Reset targetSelected when phase changes away from choosingTarget
+  useEffect(() => {
+    if (gameState.phase !== 'choosingTarget') {
+      setTargetSelected(false);
+    }
+  }, [gameState.phase]);
+
+  // Show targeting overlay?
+  const isMyTurnToShoot = gameState.currentShooter === myRole;
+  const showTargeting = gameState.phase === 'choosingTarget'
+    && isMyTurnToShoot
+    && !animating
+    && !targetSelected;
+
+  const handleTargetSelect = useCallback((target: 'self' | 'opponent') => {
+    setTargetSelected(true);
+    // Unhighlight before selecting
+    if (gameRef.current) {
+      const scene = gameRef.current.scene.getScene('GameScene') as GameScene;
+      if (scene && scene.scene.isActive()) {
+        scene.unhighlightTarget('player1');
+        scene.unhighlightTarget('player2');
+      }
+    }
+    chooseTarget(target);
+  }, [chooseTarget]);
+
+  const handleHoverPlayer = useCallback((player: 'player1' | 'player2') => {
+    if (!gameRef.current) return;
+    const scene = gameRef.current.scene.getScene('GameScene') as GameScene;
+    if (scene && scene.scene.isActive()) {
+      scene.highlightTarget(player);
+    }
+  }, []);
+
+  const handleLeavePlayer = useCallback((player: 'player1' | 'player2') => {
+    if (!gameRef.current) return;
+    const scene = gameRef.current.scene.getScene('GameScene') as GameScene;
+    if (scene && scene.scene.isActive()) {
+      scene.unhighlightTarget(player);
+    }
+  }, []);
 
   // After suspense completes → play shot animation
   const handleSuspenseComplete = useCallback(() => {
@@ -189,6 +237,14 @@ export default function GameScreen({ matchId, playerAddress, playerA, playerB, o
           ref={containerRef}
           style={{ width: '100%', height: '100%' }}
         />
+        {showTargeting && (
+          <TargetingOverlay
+            myRole={myRole}
+            onSelect={handleTargetSelect}
+            onHoverPlayer={handleHoverPlayer}
+            onLeavePlayer={handleLeavePlayer}
+          />
+        )}
         {showSuspense && (
           <SuspenseOverlay
             cardPlayed={suspenseCard}
