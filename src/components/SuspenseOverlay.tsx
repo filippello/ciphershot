@@ -14,14 +14,6 @@ interface Props {
 
 type Phase = 'count3' | 'count2' | 'count1' | 'card' | 'done';
 
-const PIXEL_FONT: React.CSSProperties = {
-  fontFamily: 'monospace',
-  fontWeight: 'bold',
-  imageRendering: 'pixelated',
-  textRendering: 'optimizeLegibility',
-  letterSpacing: '4px',
-};
-
 export default function SuspenseOverlay({ cardPlayed, onComplete }: Props) {
   const [phase, setPhase] = useState<Phase>('count3');
 
@@ -60,11 +52,11 @@ export default function SuspenseOverlay({ cardPlayed, onComplete }: Props) {
       pointerEvents: 'none',
     }}>
       {(phase === 'count3' || phase === 'count2' || phase === 'count1') && (
-        <div style={{
-          ...PIXEL_FONT,
-          fontSize: '120px',
+        <div className={phase === 'count1' ? 'text-glow-red' : 'text-glow-yellow'} style={{
+          fontSize: '100px',
+          fontWeight: 'bold',
+          letterSpacing: '4px',
           color: phase === 'count1' ? '#ff4444' : '#ffcc44',
-          textShadow: `0 0 40px ${phase === 'count1' ? '#ff4444' : '#ffcc44'}`,
           animation: 'countPop 0.7s ease-out',
         }}>
           {phase === 'count3' ? '3' : phase === 'count2' ? '2' : '1'}
@@ -86,8 +78,8 @@ export default function SuspenseOverlay({ cardPlayed, onComplete }: Props) {
                 height: '230px',
                 borderRadius: '8px',
                 overflow: 'hidden',
-                border: '2px solid #ffcc44',
-                boxShadow: '0 0 30px rgba(255, 204, 68, 0.5)',
+                border: '3px solid #ffcc44',
+                boxShadow: '0 0 30px rgba(255, 204, 68, 0.5), 0 0 60px rgba(255, 204, 68, 0.2)',
               }}>
                 <img
                   src={CARD_IMAGES[cardPlayed]}
@@ -95,42 +87,27 @@ export default function SuspenseOverlay({ cardPlayed, onComplete }: Props) {
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
               </div>
-              <div style={{
-                ...PIXEL_FONT,
-                fontSize: '28px',
+              <div className={cardPlayed === 'redirect' ? 'text-glow-purple' : 'text-glow-green'} style={{
+                fontSize: '18px',
                 color: cardPlayed === 'redirect' ? '#cc88cc' : '#88cc88',
-                textShadow: `0 0 20px ${cardPlayed === 'redirect' ? '#cc88cc' : '#88cc88'}`,
                 textTransform: 'uppercase',
+                letterSpacing: '3px',
               }}>
                 {cardPlayed}
               </div>
             </>
           ) : (
             <div style={{
-              ...PIXEL_FONT,
-              fontSize: '36px',
+              fontSize: '24px',
               color: '#666677',
               textShadow: '0 0 20px #666677',
+              letterSpacing: '3px',
             }}>
               NO CARD
             </div>
           )}
         </div>
       )}
-
-      <style>{`
-        @keyframes countPop {
-          0% { transform: scale(2); opacity: 0; }
-          30% { transform: scale(0.9); opacity: 1; }
-          50% { transform: scale(1.05); }
-          100% { transform: scale(1); opacity: 1; }
-        }
-        @keyframes cardReveal {
-          0% { transform: scale(0.3) rotateY(90deg); opacity: 0; }
-          50% { transform: scale(1.1) rotateY(0deg); opacity: 1; }
-          100% { transform: scale(1) rotateY(0deg); opacity: 1; }
-        }
-      `}</style>
     </div>
   );
 }

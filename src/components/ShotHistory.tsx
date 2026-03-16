@@ -8,13 +8,13 @@ export default function ShotHistory() {
   return (
     <div style={{
       padding: '4px 16px',
-      background: '#0a0a16',
-      fontFamily: 'monospace',
-      fontSize: '10px',
+      background: 'linear-gradient(180deg, #0a0a16, #08081a)',
+      fontSize: '7px',
       color: '#555566',
       maxHeight: '50px',
       overflowY: 'auto',
-      borderTop: '1px solid #1a1a2e',
+      borderTop: '2px solid #1a1a2e',
+      letterSpacing: '0.5px',
     }}>
       {history.map((shot, i) => {
         const shooter = shot.shooter === 'player1' ? 'P1' : 'P2';

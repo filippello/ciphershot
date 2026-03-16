@@ -62,7 +62,6 @@ export default function MatchmakingLobby({ playerAddress, onMatchFound, onDiscon
       alignItems: 'center',
       minHeight: '100vh',
       padding: '60px 16px 24px',
-      fontFamily: 'monospace',
       overflowY: 'auto',
     }}>
       {/* Top bar */}
@@ -76,42 +75,30 @@ export default function MatchmakingLobby({ playerAddress, onMatchFound, onDiscon
         gap: '12px',
         zIndex: 10,
       }}>
-        <span style={{ color: '#88cc88', fontSize: '12px', fontFamily: 'monospace' }}>
+        <span style={{ color: '#88cc88', fontSize: '8px' }}>
           {shortAddress(playerAddress)}
         </span>
         <button
           onClick={onDisconnect}
-          style={{
-            padding: '4px 12px',
-            background: '#2e1a1a',
-            color: '#cc8888',
-            border: '1px solid #5e3a3a',
-            fontFamily: 'monospace',
-            cursor: 'pointer',
-            fontSize: '11px',
-          }}
+          className="arcade-btn arcade-btn-red"
+          style={{ padding: '4px 12px', fontSize: '7px' }}
         >
           DISCONNECT
         </button>
       </div>
 
       {/* Title */}
-      <h1 style={{ color: '#ff4444', fontSize: '36px', margin: '0 0 20px' }}>CIPHERSHOT</h1>
+      <h1 className="crt-title" style={{ fontSize: '28px', margin: '0 0 20px', letterSpacing: '4px' }}>
+        CIPHERSHOT
+      </h1>
 
       {/* Action area */}
       <div style={{ marginBottom: '20px', textAlign: 'center' }}>
         {status === 'idle' && (
           <button
             onClick={joinQueue}
-            style={{
-              padding: '16px 48px',
-              background: '#1a2e1a',
-              color: '#88cc88',
-              border: '1px solid #3a5e3a',
-              fontFamily: 'monospace',
-              cursor: 'pointer',
-              fontSize: '18px',
-            }}
+            className="arcade-btn arcade-btn-green"
+            style={{ padding: '16px 40px', fontSize: '12px' }}
           >
             FIND MATCH
           </button>
@@ -119,9 +106,9 @@ export default function MatchmakingLobby({ playerAddress, onMatchFound, onDiscon
 
         {status === 'queued' && (
           <div>
-            <div style={{
+            <div className="text-glow-yellow" style={{
               color: '#ffcc44',
-              fontSize: '16px',
+              fontSize: '10px',
               marginBottom: '12px',
               animation: 'pulse 1.5s ease-in-out infinite',
             }}>
@@ -129,43 +116,23 @@ export default function MatchmakingLobby({ playerAddress, onMatchFound, onDiscon
             </div>
             <button
               onClick={leaveQueue}
-              style={{
-                padding: '8px 24px',
-                background: '#2e1a1a',
-                color: '#cc8888',
-                border: '1px solid #5e3a3a',
-                fontFamily: 'monospace',
-                cursor: 'pointer',
-                fontSize: '13px',
-              }}
+              className="arcade-btn arcade-btn-red"
+              style={{ padding: '8px 24px', fontSize: '8px' }}
             >
               CANCEL
             </button>
-            <style>{`
-              @keyframes pulse {
-                0%, 100% { opacity: 1; }
-                50% { opacity: 0.5; }
-              }
-            `}</style>
           </div>
         )}
 
         {status === 'error' && (
           <div>
-            <div style={{ color: '#ff4444', fontSize: '14px', marginBottom: '12px' }}>
+            <div style={{ color: '#ff4444', fontSize: '9px', marginBottom: '12px' }}>
               {message}
             </div>
             <button
               onClick={joinQueue}
-              style={{
-                padding: '8px 24px',
-                background: '#2a2a3e',
-                color: '#8888aa',
-                border: '1px solid #3a3a5e',
-                fontFamily: 'monospace',
-                cursor: 'pointer',
-                fontSize: '13px',
-              }}
+              className="arcade-btn arcade-btn-neutral"
+              style={{ padding: '8px 24px', fontSize: '8px' }}
             >
               RETRY
             </button>

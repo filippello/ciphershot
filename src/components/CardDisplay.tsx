@@ -17,22 +17,19 @@ function OpponentCards({ player }: { player: Player }) {
       display: 'flex',
       alignItems: 'center',
       gap: '4px',
-      fontFamily: 'monospace',
-      fontSize: '9px',
+      fontSize: '7px',
       color: '#555566',
     }}>
-      <span style={{ color: '#ff6666' }}>OPP</span>
+      <span className="text-glow-red" style={{ color: '#ff6666' }}>OPP</span>
       <div style={{ display: 'flex', gap: '2px' }}>
         {cards.map((card) => (
           <div
             key={card.id}
+            className={`card-frame ${card.used ? 'card-used' : ''}`}
             style={{
               width: '20px',
               height: '28px',
-              borderRadius: '2px',
-              overflow: 'hidden',
               opacity: card.used ? 0.15 : 0.7,
-              filter: card.used ? 'grayscale(1)' : 'none',
             }}
           >
             <img
@@ -61,21 +58,16 @@ function MyCards({ player }: { player: Player }) {
       display: 'flex',
       alignItems: 'center',
       gap: '8px',
-      fontFamily: 'monospace',
     }}>
-      <div style={{ color: '#ffcc44', fontSize: '10px' }}>YOU</div>
+      <div className="text-glow-yellow" style={{ color: '#ffcc44', fontSize: '8px' }}>YOU</div>
       <div style={{ display: 'flex', gap: '4px' }}>
         {cards.map((card) => (
           <div
             key={card.id}
+            className={`card-frame ${card.used ? 'card-used' : ''}`}
             style={{
               width: '48px',
               height: '68px',
-              borderRadius: '3px',
-              overflow: 'hidden',
-              opacity: card.used ? 0.15 : 1,
-              filter: card.used ? 'grayscale(1)' : 'none',
-              border: card.used ? '1px solid #222233' : '1px solid #3a3a5e',
             }}
           >
             <img
@@ -86,7 +78,7 @@ function MyCards({ player }: { player: Player }) {
           </div>
         ))}
       </div>
-      <div style={{ fontSize: '10px', color: '#666677' }}>
+      <div style={{ fontSize: '8px', color: '#666677' }}>
         <span style={{ color: '#88cc88' }}>{bluffs}B</span>{' '}
         <span style={{ color: '#cc88cc' }}>{redirects}R</span>
       </div>
@@ -106,9 +98,9 @@ export default function CardDisplay({ myRole }: Props) {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: '4px 16px',
-      background: '#0d0d1a',
-      borderTop: '1px solid #1a1a2e',
+      padding: '6px 16px',
+      background: 'linear-gradient(180deg, #0d0d1a, #0a0a16)',
+      borderTop: '2px solid #1a1a2e',
     }}>
       <MyCards player={myRole} />
       <OpponentCards player={opponentRole} />

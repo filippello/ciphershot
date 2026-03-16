@@ -27,18 +27,21 @@ export default function ActionPanel({ playerAddress, playerA, playerB }: Props) 
   const shooterName = currentShooter === 'player1' ? 'P1' : 'P2';
   const responderName = responder === 'player1' ? 'P1' : 'P2';
 
+  const panelStyle: React.CSSProperties = {
+    padding: '8px 16px',
+    background: 'linear-gradient(180deg, #0d0d1a, #0a0a16)',
+    borderTop: '2px solid #2a2a3e',
+    textAlign: 'center',
+  };
+
   if (phase === 'gameOver') {
-    const winnerName = winner === 'player1' ? 'Player 1' : winner === 'player2' ? 'Player 2' : 'Nobody';
     const iWon = winner === myRole;
     return (
-      <div style={{
-        padding: '6px 16px',
-        background: '#0d0d1a',
-        borderTop: '1px solid #2a2a3e',
-        textAlign: 'center',
-        fontFamily: 'monospace',
-      }}>
-        <div style={{ color: iWon ? '#88cc88' : '#ff4444', fontSize: '24px', marginBottom: '4px' }}>
+      <div style={panelStyle}>
+        <div className={iWon ? 'text-glow-green' : 'text-glow-red'} style={{
+          color: iWon ? '#88cc88' : '#ff4444',
+          fontSize: '16px',
+        }}>
           {iWon ? 'YOU WIN' : 'YOU LOSE'}
         </div>
       </div>
@@ -47,14 +50,7 @@ export default function ActionPanel({ playerAddress, playerA, playerB }: Props) 
 
   if (animating || phase === 'resolving') {
     return (
-      <div style={{
-        padding: '6px 16px',
-        background: '#0d0d1a',
-        borderTop: '1px solid #2a2a3e',
-        textAlign: 'center',
-        fontFamily: 'monospace',
-        color: '#666677',
-      }}>
+      <div style={{ ...panelStyle, color: '#666677', fontSize: '8px' }}>
         Resolving shot...
       </div>
     );
@@ -63,56 +59,29 @@ export default function ActionPanel({ playerAddress, playerA, playerB }: Props) 
   if (phase === 'choosingTarget') {
     if (!isMyTurnToShoot) {
       return (
-        <div style={{
-          padding: '6px 16px',
-          background: '#0d0d1a',
-          borderTop: '1px solid #2a2a3e',
-          textAlign: 'center',
-          fontFamily: 'monospace',
-          color: '#666677',
-        }}>
+        <div style={{ ...panelStyle, color: '#666677', fontSize: '8px' }}>
           Waiting for {shooterName} to choose target...
         </div>
       );
     }
 
     return (
-      <div style={{
-        padding: '6px 16px',
-        background: '#0d0d1a',
-        borderTop: '1px solid #2a2a3e',
-        textAlign: 'center',
-        fontFamily: 'monospace',
-      }}>
-        <div style={{ color: '#8888aa', marginBottom: '4px' }}>
+      <div style={panelStyle}>
+        <div style={{ color: '#8888aa', marginBottom: '8px', fontSize: '8px' }}>
           Your turn — Choose your target:
         </div>
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
           <button
             onClick={() => { playSound('choose_target', 0.5); chooseTarget('self'); }}
-            style={{
-              padding: '6px 20px',
-              background: '#1a1a2e',
-              color: '#aaaacc',
-              border: '1px solid #3a3a5e',
-              fontFamily: 'monospace',
-              cursor: 'pointer',
-              fontSize: '14px',
-            }}
+            className="arcade-btn arcade-btn-neutral"
+            style={{ padding: '8px 16px', fontSize: '9px' }}
           >
             SHOOT SELF
           </button>
           <button
             onClick={() => { playSound('choose_target', 0.6); chooseTarget('opponent'); }}
-            style={{
-              padding: '6px 20px',
-              background: '#1a1a2e',
-              color: '#ff6666',
-              border: '1px solid #ff4444',
-              fontFamily: 'monospace',
-              cursor: 'pointer',
-              fontSize: '14px',
-            }}
+            className="arcade-btn arcade-btn-red"
+            style={{ padding: '8px 16px', fontSize: '9px' }}
           >
             SHOOT OPPONENT
           </button>
@@ -124,14 +93,7 @@ export default function ActionPanel({ playerAddress, playerA, playerB }: Props) 
   if (phase === 'respondingCard') {
     if (!isMyTurnToRespond) {
       return (
-        <div style={{
-          padding: '6px 16px',
-          background: '#0d0d1a',
-          borderTop: '1px solid #2a2a3e',
-          textAlign: 'center',
-          fontFamily: 'monospace',
-          color: '#666677',
-        }}>
+        <div style={{ ...panelStyle, color: '#666677', fontSize: '8px' }}>
           Waiting for {responderName} to play a card...
         </div>
       );
@@ -141,44 +103,24 @@ export default function ActionPanel({ playerAddress, playerA, playerB }: Props) 
     const availableRedirects = responderCards.filter(c => c.type === 'redirect' && !c.used).length;
 
     return (
-      <div style={{
-        padding: '6px 16px',
-        background: '#0d0d1a',
-        borderTop: '1px solid #2a2a3e',
-        textAlign: 'center',
-        fontFamily: 'monospace',
-      }}>
-        <div style={{ color: '#8888aa', marginBottom: '4px' }}>
+      <div style={panelStyle}>
+        <div style={{ color: '#8888aa', marginBottom: '8px', fontSize: '8px' }}>
           Respond — Play a card:
         </div>
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
           <button
             onClick={() => { playSound('card_submit', 0.5); respondWithCard('bluff'); }}
             disabled={availableBluffs === 0}
-            style={{
-              padding: '6px 16px',
-              background: availableBluffs > 0 ? '#1a2e1a' : '#1a1a1a',
-              color: availableBluffs > 0 ? '#88cc88' : '#444444',
-              border: `1px solid ${availableBluffs > 0 ? '#3a5e3a' : '#333333'}`,
-              fontFamily: 'monospace',
-              cursor: availableBluffs > 0 ? 'pointer' : 'not-allowed',
-              fontSize: '13px',
-            }}
+            className="arcade-btn arcade-btn-green"
+            style={{ padding: '8px 14px', fontSize: '8px' }}
           >
             BLUFF ({availableBluffs})
           </button>
           <button
             onClick={() => { playSound('card_submit', 0.5); respondWithCard('redirect'); }}
             disabled={availableRedirects === 0}
-            style={{
-              padding: '6px 16px',
-              background: availableRedirects > 0 ? '#2e1a2e' : '#1a1a1a',
-              color: availableRedirects > 0 ? '#cc88cc' : '#444444',
-              border: `1px solid ${availableRedirects > 0 ? '#5e3a5e' : '#333333'}`,
-              fontFamily: 'monospace',
-              cursor: availableRedirects > 0 ? 'pointer' : 'not-allowed',
-              fontSize: '13px',
-            }}
+            className="arcade-btn arcade-btn-purple"
+            style={{ padding: '8px 14px', fontSize: '8px' }}
           >
             REDIRECT ({availableRedirects})
           </button>

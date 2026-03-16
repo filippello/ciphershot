@@ -7,19 +7,14 @@ export default function HUD() {
   const playerName = currentShooter === 'player1' ? 'Player 1' : 'Player 2';
 
   return (
-    <div style={{
+    <div className="hud-bar" style={{
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: '4px 16px',
-      background: '#0d0d1a',
       color: '#8888aa',
-      fontFamily: 'monospace',
-      fontSize: '12px',
-      borderBottom: '1px solid #2a2a3e',
     }}>
       <div>
-        <span style={{ color: '#ff4444' }}>SHOOTER:</span> {playerName}
+        <span className="text-glow-red" style={{ color: '#ff4444' }}>SHOOTER:</span> {playerName}
       </div>
       <div>
         SHOT {currentShotIndex + 1} / {chamber.length}

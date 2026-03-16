@@ -28,17 +28,16 @@ export default function ResultBanner({ winner, playerAddress, playerA, playerB, 
       justifyContent: 'center',
       background: 'rgba(0, 0, 0, 0.85)',
       zIndex: 100,
-      fontFamily: 'monospace',
       gap: '24px',
     }}>
-      <div style={{
-        fontSize: '48px',
+      <div className={isWinner ? 'text-glow-green' : 'text-glow-red'} style={{
+        fontSize: '32px',
         color: isWinner ? '#88cc88' : '#ff4444',
-        textShadow: `0 0 20px ${isWinner ? '#88cc88' : '#ff4444'}`,
+        letterSpacing: '6px',
       }}>
         {isWinner ? 'VICTORY' : 'DEFEAT'}
       </div>
-      <div style={{ color: '#666677', fontSize: '14px' }}>
+      <div style={{ color: '#666677', fontSize: '8px' }}>
         {winnerAddress
           ? `Winner: ${winnerAddress.slice(0, 6)}...${winnerAddress.slice(-4)}`
           : 'Draw'
@@ -46,15 +45,8 @@ export default function ResultBanner({ winner, playerAddress, playerA, playerB, 
       </div>
       <button
         onClick={onPlayAgain}
-        style={{
-          padding: '12px 36px',
-          background: '#1a2e1a',
-          color: '#88cc88',
-          border: '1px solid #3a5e3a',
-          fontFamily: 'monospace',
-          cursor: 'pointer',
-          fontSize: '16px',
-        }}
+        className="arcade-btn arcade-btn-green"
+        style={{ padding: '12px 32px', fontSize: '10px' }}
       >
         PLAY AGAIN
       </button>

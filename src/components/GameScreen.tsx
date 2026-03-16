@@ -150,26 +150,21 @@ export default function GameScreen({ matchId, playerAddress, playerA, playerB, o
   }, [matchId, playerAddress, receiveState, setConnection]);
 
   return (
-    <main style={{
+    <main className="crt-panel" style={{
       display: 'flex',
       flexDirection: 'column',
       maxWidth: '960px',
       width: '100%',
       height: '100vh',
       overflow: 'hidden',
-      border: '1px solid #2a2a3e',
       position: 'relative',
     }}>
-      <div style={{
+      <div className="hud-bar" style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: '4px 16px',
-        background: '#0a0a16',
-        fontFamily: 'monospace',
-        fontSize: '10px',
         color: '#444455',
-        borderBottom: '1px solid #1a1a2e',
+        fontSize: '7px',
       }}>
         <span>Match: {matchId.slice(0, 8)}...</span>
         <span>
@@ -180,15 +175,8 @@ export default function GameScreen({ matchId, playerAddress, playerA, playerB, o
         {gameState.phase === 'gameOver' && (
           <button
             onClick={onLeaveMatch}
-            style={{
-              padding: '2px 12px',
-              background: '#2a2a3e',
-              color: '#8888aa',
-              border: '1px solid #3a3a5e',
-              fontFamily: 'monospace',
-              cursor: 'pointer',
-              fontSize: '10px',
-            }}
+            className="arcade-btn arcade-btn-neutral"
+            style={{ padding: '2px 10px', fontSize: '7px' }}
           >
             LEAVE
           </button>
