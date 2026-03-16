@@ -162,10 +162,51 @@ Survive while your opponent doesn't. That's all.
 
 ---
 
+## Zama fhEVM Integration
+
+CipherShot uses **Zama's fhEVM** to run the entire game logic with Fully Homomorphic Encryption on Ethereum Sepolia. The chamber order and card choices are encrypted on-chain — nobody (not even the server) can see them until the shot resolves.
+
+| Component | What it does |
+|-----------|-------------|
+| `CipherShotGame.sol` | Encrypted chamber shuffle (Fisher-Yates in FHE), encrypted card validation & consumption, FHE shot resolution |
+| `@zama-fhe/relayer-sdk` | Server-side `publicDecrypt()` of shot results after `FHE.makePubliclyDecryptable()` |
+| `relayer-sdk-js` (CDN) | Client-side encrypted input creation (`encryptCard`) and user decryption of own card counts |
+
+### FHE Game Flow
+
+```
+Shooter → chooseTarget(matchId, target)         [plaintext tx]
+Responder → playCard(matchId, encCard, proof)   [encrypted via fhevmjs]
+    ↓
+Contract resolves shot entirely in FHE domain:
+  - Is card a redirect? → flip target (encrypted)
+  - Is chamber round live? → killed (encrypted)
+  - FHE.makePubliclyDecryptable(results)
+    ↓
+Server calls publicDecrypt() via Relayer SDK → gets plaintext values
+Server calls finalizeRound() on-chain → RoundFinalized event
+    ↓
+Client receives state update → card reveal animation → shot fires
+```
+
+### Reference Transaction
+
+Full FHE game round on Sepolia (encrypted card submission + FHE resolution + public decryption + finalization):
+
+[`0xb59a32a04ceeeb0962ebaa89ef2a9a968198207204b6e60bf3ddf48b6f30aa0f`](https://sepolia.etherscan.io/tx/0xb59a32a04ceeeb0962ebaa89ef2a9a968198207204b6e60bf3ddf48b6f30aa0f#eventlog)
+
+### Contract
+
+- **Network**: Ethereum Sepolia (chain 11155111)
+- **Address**: [`0x843D7908AF8042199EA80f1883CD20e8d4211ba8`](https://sepolia.etherscan.io/address/0x843D7908AF8042199EA80f1883CD20e8d4211ba8)
+- **Source**: `chain/contracts/CipherShotGame.sol`
+
+---
+
 ## Roadmap
 
-- [ ] Zama FHE integration for encrypted chamber/resolver logic
-- [ ] On-chain game verification
+- [x] Zama FHE integration for encrypted chamber/resolver logic
+- [x] On-chain game verification
 - [ ] Ranked matchmaking
 - [ ] Additional card types
 
