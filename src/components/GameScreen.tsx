@@ -5,6 +5,7 @@ import { GameScene } from '@/game/phaser/GameScene';
 import { useGameStore } from '@/game/store';
 import { connectToMatch } from '@/lib/matchmaking';
 import type { CardType, Player } from '@/game/core/types';
+import { getResponder } from '@/game/core/engine';
 import { playSound, stopLoop, startMusic, stopMusic } from '@/lib/audio';
 import HUD from './HUD';
 import ActionPanel from './ActionPanel';
@@ -12,6 +13,7 @@ import CardDisplay from './CardDisplay';
 import ShotHistory from './ShotHistory';
 import SuspenseOverlay from './SuspenseOverlay';
 import TargetingOverlay from './TargetingOverlay';
+import CardSelectOverlay from './CardSelectOverlay';
 
 interface Props {
   matchId: string;
@@ -28,6 +30,7 @@ export default function GameScreen({ matchId, playerAddress, playerA, playerB, o
   const setAnimating = useGameStore((s) => s.setAnimating);
   const setConnection = useGameStore((s) => s.setConnection);
   const chooseTarget = useGameStore((s) => s.chooseTarget);
+  const respondWithCard = useGameStore((s) => s.respondWithCard);
   const isPlayerA = playerAddress === playerA;
   const myRole: Player = isPlayerA ? 'player1' : 'player2';
 
@@ -43,6 +46,9 @@ export default function GameScreen({ matchId, playerAddress, playerA, playerB, o
 
   // Targeting state — track if we already chose to avoid re-showing overlay
   const [targetSelected, setTargetSelected] = useState(false);
+
+  // Card select state
+  const [cardSelected, setCardSelected] = useState(false);
 
   // Init Phaser
   useEffect(() => {
@@ -91,10 +97,13 @@ export default function GameScreen({ matchId, playerAddress, playerA, playerB, o
     prevAnimatingRef.current = animating;
   }, [gameState, animating]);
 
-  // Reset targetSelected when phase changes away from choosingTarget
+  // Reset selection states when phase changes
   useEffect(() => {
     if (gameState.phase !== 'choosingTarget') {
       setTargetSelected(false);
+    }
+    if (gameState.phase !== 'respondingCard') {
+      setCardSelected(false);
     }
   }, [gameState.phase]);
 
@@ -117,6 +126,20 @@ export default function GameScreen({ matchId, playerAddress, playerA, playerB, o
     }
     chooseTarget(target);
   }, [chooseTarget]);
+
+  // Card select overlay
+  const responder = getResponder(gameState.currentShooter);
+  const isMyTurnToRespond = responder === myRole;
+  const showCardSelect = gameState.phase === 'respondingCard'
+    && isMyTurnToRespond
+    && !animating
+    && !cardSelected;
+  const myCards = gameState.players[myRole].cards;
+
+  const handleCardSelect = useCallback((cardType: CardType) => {
+    setCardSelected(true);
+    respondWithCard(cardType);
+  }, [respondWithCard]);
 
   const handleHoverPlayer = useCallback((player: 'player1' | 'player2') => {
     if (!gameRef.current) return;
@@ -243,6 +266,12 @@ export default function GameScreen({ matchId, playerAddress, playerA, playerB, o
             onSelect={handleTargetSelect}
             onHoverPlayer={handleHoverPlayer}
             onLeavePlayer={handleLeavePlayer}
+          />
+        )}
+        {showCardSelect && (
+          <CardSelectOverlay
+            cards={myCards}
+            onSelect={handleCardSelect}
           />
         )}
         {showSuspense && (

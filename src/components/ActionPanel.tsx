@@ -1,7 +1,6 @@
 import { useGameStore } from '@/game/store';
 import { getResponder } from '@/game/core/engine';
 import type { Player } from '@/game/core/types';
-import { playSound } from '@/lib/audio';
 
 interface Props {
   playerAddress: string;
@@ -12,11 +11,9 @@ interface Props {
 export default function ActionPanel({ playerAddress, playerA, playerB }: Props) {
   const gameState = useGameStore((s) => s.gameState);
   const animating = useGameStore((s) => s.animating);
-  const respondWithCard = useGameStore((s) => s.respondWithCard);
 
   const { phase, currentShooter, players, winner } = gameState;
   const responder = getResponder(currentShooter);
-  const responderCards = players[responder].cards;
 
   // Map wallet address to player role
   const myRole: Player = playerAddress === playerA ? 'player1' : 'player2';
@@ -80,32 +77,9 @@ export default function ActionPanel({ playerAddress, playerA, playerB }: Props) 
       );
     }
 
-    const availableBluffs = responderCards.filter(c => c.type === 'bluff' && !c.used).length;
-    const availableRedirects = responderCards.filter(c => c.type === 'redirect' && !c.used).length;
-
     return (
-      <div style={panelStyle}>
-        <div style={{ color: '#8888aa', marginBottom: '8px', fontSize: '8px' }}>
-          Respond — Play a card:
-        </div>
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-          <button
-            onClick={() => { playSound('card_submit', 0.5); respondWithCard('bluff'); }}
-            disabled={availableBluffs === 0}
-            className="arcade-btn arcade-btn-green"
-            style={{ padding: '8px 14px', fontSize: '8px' }}
-          >
-            BLUFF ({availableBluffs})
-          </button>
-          <button
-            onClick={() => { playSound('card_submit', 0.5); respondWithCard('redirect'); }}
-            disabled={availableRedirects === 0}
-            className="arcade-btn arcade-btn-purple"
-            style={{ padding: '8px 14px', fontSize: '8px' }}
-          >
-            REDIRECT ({availableRedirects})
-          </button>
-        </div>
+      <div style={{ ...panelStyle, color: '#ffcc44', fontSize: '8px' }}>
+        Choose a card from your hand
       </div>
     );
   }
