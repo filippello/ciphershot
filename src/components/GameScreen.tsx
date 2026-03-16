@@ -93,9 +93,16 @@ export default function GameScreen({ matchId, playerAddress, playerA, playerB, o
 
     // New shot resolved → start suspense countdown
     if (animating && !prevAnimatingRef.current && gameState.lastResult) {
-      setSuspenseCard(gameState.lastResult.cardPlayed);
-      setFheSuspense(false);
-      setShowSuspense(true);
+      if (fheSuspense && showSuspense) {
+        // FHE mode: overlay is already showing "DECRYPTING..."
+        // Just update the card — SuspenseOverlay handles the transition
+        setSuspenseCard(gameState.lastResult.cardPlayed);
+      } else {
+        // Legacy mode: start normal countdown
+        setSuspenseCard(gameState.lastResult.cardPlayed);
+        setFheSuspense(false);
+        setShowSuspense(true);
+      }
     }
     prevAnimatingRef.current = animating;
   }, [gameState, animating]);

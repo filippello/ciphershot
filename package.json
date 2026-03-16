@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "concurrently \"vite --host 0.0.0.0 --port 3000\" \"tsx server/index.ts\"",
+    "dev": "concurrently \"vite --host 0.0.0.0 --port 3000\" \"node --env-file=.env node_modules/.bin/tsx server/index.ts\"",
     "dev:client": "vite --host 0.0.0.0 --port 3000",
-    "dev:server": "tsx server/index.ts",
+    "dev:server": "node --env-file=.env node_modules/.bin/tsx server/index.ts",
     "build": "tsc && vite build",
     "build:client": "vite build",
     "preview": "vite preview"
@@ -17,15 +17,16 @@
   "dependencies": {
     "@types/node": "^25.5.0",
     "@types/react": "^19.2.14",
+    "@zama-fhe/relayer-sdk": "^0.2.0",
     "ethers": "^6.16.0",
     "phaser": "^3.90.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "tsx": "^4.19.0",
     "typescript": "^5.9.3",
     "uuid": "^11.1.0",
     "viem": "^2.47.2",
     "ws": "^8.18.0",
-    "tsx": "^4.19.0",
     "zustand": "^5.0.11"
   },
   "devDependencies": {

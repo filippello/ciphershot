@@ -1,3 +1,4 @@
+import { keccak256, toUtf8Bytes } from 'ethers';
 import type { GameState, Target, CardType } from '@/game/core/types';
 import { getSigner } from '@/lib/contract';
 import { chooseTargetOnChain, playCardOnChain, CONTRACT_ADDRESS } from '@/lib/contract';
@@ -85,6 +86,8 @@ export function connectToMatch(
 export class GameConnection {
   private ws: WebSocket;
   private matchId: string;
+  /** bytes32 on-chain match ID — keccak256(uuid), same transform the server uses */
+  private matchIdBytes: string;
   private player: string;
   private _fheMode = false;
   private _fheInitialized = false;
@@ -97,6 +100,7 @@ export class GameConnection {
     private onCardSubmitted?: () => void,
   ) {
     this.matchId = matchId;
+    this.matchIdBytes = keccak256(toUtf8Bytes(matchId));
     this.player = player;
     this.ws = new WebSocket(WS_URL);
 
@@ -153,7 +157,7 @@ export class GameConnection {
       try {
         const signer = await getSigner();
         const targetNum = target === 'self' ? 0 : 1;
-        const tx = await chooseTargetOnChain(signer, this.matchId, targetNum);
+        const tx = await chooseTargetOnChain(signer, this.matchIdBytes, targetNum);
         await tx.wait();
         console.log('[FHE] chooseTarget tx confirmed');
       } catch (err) {
@@ -177,7 +181,7 @@ export class GameConnection {
 
         const signer = await getSigner();
         const cardNum = card === 'bluff' ? 1 : card === 'redirect' ? 2 : 0;
-        const tx = await playCardOnChain(signer, this.matchId, cardNum);
+        const tx = await playCardOnChain(signer, this.matchIdBytes, cardNum);
         await tx.wait();
         console.log('[FHE] playCard tx confirmed (encrypted)');
       } catch (err) {

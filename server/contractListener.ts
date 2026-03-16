@@ -10,11 +10,12 @@
  */
 
 import { ethers } from 'ethers';
+import { decryptShotResult } from './fheDecrypt.js';
 
 // Contract address (from deployment)
 const CONTRACT_ADDRESS = process.env.CIPHERSHOT_CONTRACT || '0x843D7908AF8042199EA80f1883CD20e8d4211ba8';
-const RPC_URL = process.env.RPC_URL || 'https://sepolia.infura.io/v3/YOUR_KEY';
-const SERVER_PRIVATE_KEY = process.env.SERVER_PRIVATE_KEY || '';
+const RPC_URL = process.env.RPC_URL || '';
+const SERVER_PRIVATE_KEY = process.env.SERVER_PRIVATE_KEY;
 
 // Minimal ABI for events + finalizeRound
 const CIPHERSHOT_ABI = [
@@ -48,6 +49,16 @@ let contract: ethers.Contract | null = null;
 export function initContractListener(): boolean {
   if (!CONTRACT_ADDRESS) {
     console.log('[Contract] No contract address configured — running in legacy mode');
+    return false;
+  }
+
+  if (!RPC_URL) {
+    console.warn('[Contract] RPC_URL not set — falling back to legacy mode');
+    return false;
+  }
+
+  if (!SERVER_PRIVATE_KEY) {
+    console.warn('[Contract] SERVER_PRIVATE_KEY not set — falling back to legacy mode');
     return false;
   }
 
@@ -113,9 +124,21 @@ export function startEventListener(onEvent: (event: GameEvent) => void): void {
       },
     });
 
-    // TODO: Decrypt the publicly-decryptable handles via relayer SDK
-    // and call finalizeRound. For hackathon, the client will trigger
-    // finalization after suspense countdown.
+    // Decrypt the publicly-decryptable handles via Relayer API,
+    // then call finalizeRound to update on-chain state.
+    try {
+      const result = await decryptShotResult(
+        { finalTarget: resultFinalTarget, killed: resultKilled, card: resultCard },
+        CONTRACT_ADDRESS,
+      );
+      console.log(`[Contract] Decrypted shot: target=${result.finalTarget} killed=${result.killed} card=${result.cardPlayed}`);
+
+      const tx = await contract!.finalizeRound(matchId, result.finalTarget, result.killed, result.cardPlayed);
+      await tx.wait();
+      console.log(`[Contract] finalizeRound confirmed: match=${matchId.slice(0, 10)}...`);
+    } catch (err) {
+      console.error(`[Contract] Decrypt/finalize failed for match=${matchId.slice(0, 10)}...:`, err);
+    }
   });
 
   contract.on('RoundFinalized', (matchId: string, shooter: string, finalTarget: string, killed: boolean, cardPlayed: bigint, shotIndex: bigint) => {
